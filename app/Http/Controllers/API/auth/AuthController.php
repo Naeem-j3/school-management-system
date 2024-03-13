@@ -21,23 +21,18 @@ class AuthController extends Controller
 
 
     public function teacherLogin(LoginRequest $request){
-        if(!Auth::attempt($request->only('email','password'))){
-            return response()->json([
-                'data'=>[],
-                'message'=> 'password or email is wrong'
+        $teacher = Teacher::where('email', $request->email)->first();
+
+        if (!$teacher || !Hash::check($request->password, $teacher->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        $teacher = Teacher::where('email', $request->email)->first();
-        $token= $teacher->createToken('mobile', ['role:teacher'])->plainTextToken;
 
-        $data['teacher']= $teacher;
-        $data['token']=$token;
         return response()->json([
-            'data'=>$data,
-            'message'=> 'teacher loged in successfuly'
-        ] );
-
-
+            'teacher' => $teacher,
+            'token' => $teacher->createToken('mobile', ['role:teacher'])->plainTextToken
+        ]);
     }
 
     //parentlogin
@@ -57,20 +52,19 @@ class AuthController extends Controller
 
     //student login
     public function studentLogin(LoginRequest $request){
-        if(!Auth::attempt($request->only('email','password'))){
-            return response()->json([
-                'data'=>[],
-                'message'=> 'password or email is wrong'
+        $student = Student::where('email', $request->email)->first();
+
+        if (!$student || !Hash::check($request->password, $student->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-        $student = Student::where('email', $request->email)->first();
-        $token=$student->createToken('mobile', ['role:student'])->plainTextToken;
-        $data['student']=$student;
-        $data['token']=$token;
+
         return response()->json([
-            'data'=>$data,
-            'message'=> 'teacher loged in successfuly'
-        ] );
+            'student' => $student,
+            'token' => $student->createToken('mobile', ['role:student'])->plainTextToken
+        ]);
+    
 
     }
 
